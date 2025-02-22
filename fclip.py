@@ -133,7 +133,7 @@ def handler(event):
         
         return {
             "sorted_indices": sorted_indices.tolist(),
-            "image_keys": sorted_keys,
+            "image_keys": sorted_keys
             # "similarity_scores": similarity_scores[sorted_indices].tolist(),
             # "metrics": {
             #     "total_time": time.time() - start_time,
