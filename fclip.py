@@ -7,6 +7,7 @@ import io
 from PIL import Image
 import os
 import time
+from functools import lru_cache
 
 # Initialize S3 client
 s3_client = boto3.client('s3',
@@ -15,13 +16,17 @@ s3_client = boto3.client('s3',
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
 )
 
+@lru_cache(maxsize=1000)
+def get_image_embedding(image_path):
+    return fclip.encode_images([image_path], batch_size=1)[0]
 
 def download_and_process_image(image_key, bucket):
     try:
-        print(f"Downloading image: {image_key}")
         response = s3_client.get_object(Bucket=bucket, Key=image_key)
         image_data = response['Body'].read()
         image = Image.open(io.BytesIO(image_data))
+        # Resize image to smaller size for faster processing
+        image.thumbnail((224, 224))  # Standard CLIP input size
         return image_key, image
     except Exception as e:
         print(f"Error processing image {image_key}: {str(e)}")
@@ -44,9 +49,14 @@ def load_images_from_s3(bucket, prefix):
     
     # Download and process images in parallel
     images = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(download_and_process_image, key, bucket) 
-                  for key in image_keys]
+    with ThreadPoolExecutor(max_workers=20) as executor:  # Increased from 10
+        futures = []
+        # Process in batches of 50
+        batch_size = 50
+        for i in range(0, len(image_keys), batch_size):
+            batch = image_keys[i:i + batch_size]
+            futures.extend([executor.submit(download_and_process_image, key, bucket) 
+                          for key in batch])
         for future in futures:
             result = future.result()
             if result:
@@ -78,7 +88,8 @@ def handler(event):
         
         # Create image embeddings
         image_paths = [img[1] for img in images]
-        image_embeddings = fclip.encode_images(image_paths, batch_size=32)
+        batch_size = 64  # Increased from 32
+        image_embeddings = fclip.encode_images(image_paths, batch_size=batch_size)
         image_embeddings = image_embeddings / np.linalg.norm(image_embeddings, ord=2, axis=-1, keepdims=True)
         print(f"Created embeddings in {time.time() - start_time:.2f} seconds")
         
@@ -92,6 +103,7 @@ def handler(event):
         
         # Map indices to S3 keys
         results = [image_keys[idx] for idx in sorted_indices]
+        print("Top results:", results[:10])  # Print first 10 results
         print(f"Search completed in {time.time() - start_time:.2f} seconds")
         
         return {
