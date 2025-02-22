@@ -7,7 +7,10 @@ import json
 import os
 
 # Initialize S3 and FashionCLIP
-s3 = boto3.client('s3')
+s3 = boto3.client('s3',
+                  region_name=os.environ['AWS_DEFAULT_REGION'],
+                  aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+                  aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
 fclip = FashionCLIP('fashion-clip')
 
 def load_images_from_s3(bucket_name, collection_name):
