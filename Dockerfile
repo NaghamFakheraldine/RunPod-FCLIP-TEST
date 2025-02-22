@@ -20,9 +20,10 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu118 \
     && pip3 install --no-cache-dir -r requirements.txt
 
-# Preload the FashionCLIP model
-RUN python3 -c "from fashion_clip.fashion_clip import FashionCLIP; FashionCLIP('fashion-clip')"
-
 COPY fclip.py .
+COPY start.sh .
 
-CMD ["python3", "-m", "runpod.serverless.worker"]
+# Make start.sh executable
+RUN chmod +x /workspace/start.sh
+
+CMD ["/workspace/start.sh"]

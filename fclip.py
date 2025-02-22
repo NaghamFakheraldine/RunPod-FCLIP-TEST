@@ -78,4 +78,4 @@ def handler(event):
         }
 
 if __name__ == "__main__":
-    handler({"input": {"query": "test", "bucket_name": "your-bucket", "collection_name": "test-collection"}})
+    handler({"input": {"query": "test", "bucket_name": "runpod-fclip-ref-collections-storage", "collection_name": "Summer Collection"}})
