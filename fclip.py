@@ -107,23 +107,34 @@ def handler(event):
             images, image_keys = images_future.result()
             print(f"Loaded {len(images)} images in {time.time() - start_time:.2f} seconds")
         
-        image_paths = [img[1] for img in images]
+        # Create a mapping of indices to image keys
+        image_paths = [img[1] for img in images]  # Get PIL images
         batch_size = 64
+        
+        # Generate embeddings for images
         image_embeddings = fclip.encode_images(image_paths, batch_size=batch_size)
         image_embeddings = image_embeddings / np.linalg.norm(image_embeddings, ord=2, axis=-1, keepdims=True)
         print(f"Created embeddings in {time.time() - start_time:.2f} seconds")
         
+        # Generate embedding for the text query
         text_embedding = fclip.encode_text([query], 32)[0]
+        text_embedding = text_embedding / np.linalg.norm(text_embedding, ord=2)
         print("Text embedded")
         
+        # Calculate similarity scores and sort
         similarity_scores = text_embedding.dot(image_embeddings.T)
-        sorted_indices = np.argsort(similarity_scores)[::-1]
+        sorted_indices = np.argsort(-similarity_scores)  # Note the negative sign for descending order
+        
+        # Map sorted indices to image keys
+        sorted_keys = [image_keys[idx] for idx in sorted_indices]
         
         print(f"Search completed in {time.time() - start_time:.2f} seconds")
+        print(f"Top 5 results for '{query}':", sorted_keys[:5])
         
         return {
             "sorted_indices": sorted_indices.tolist(),
-            "image_keys": image_keys,
+            "image_keys": sorted_keys,
+            "similarity_scores": similarity_scores[sorted_indices].tolist(),
             "metrics": {
                 "total_time": time.time() - start_time,
                 "total_images": len(images)
