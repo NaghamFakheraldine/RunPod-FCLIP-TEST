@@ -107,6 +107,9 @@ def handler(event):
             images, image_keys = images_future.result()
             print(f"Loaded {len(images)} images in {time.time() - start_time:.2f} seconds")
         
+        # After loading images, create a mapping of valid images to their original keys
+        valid_image_keys = [img[0] for img in images]  # Get keys of successfully processed images
+        
         # Create a mapping of indices to image keys
         image_paths = [img[1] for img in images]  # Get PIL images
         batch_size = 64
@@ -125,8 +128,8 @@ def handler(event):
         similarity_scores = text_embedding.dot(image_embeddings.T)
         sorted_indices = np.argsort(similarity_scores)[::-1]
         
-        # Map sorted indices to image keys
-        sorted_keys = [image_keys[idx] for idx in sorted_indices]
+        # Map sorted indices to image keys using the valid_image_keys list
+        sorted_keys = [valid_image_keys[idx] for idx in sorted_indices]
         
         print(f"Search completed in {time.time() - start_time:.2f} seconds")
         print(f"Top 5 results for '{query}':", sorted_keys[:5])
