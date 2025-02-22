@@ -1,9 +1,10 @@
 torch
 torchvision
 Pillow
-numpy
+numpy<2
 fashion-clip
 typing-extensions==4.7.1
 runpod
 requests
 boto3
+pybind11>=2.12
