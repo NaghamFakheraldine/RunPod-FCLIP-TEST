@@ -1,0 +1,9 @@
+torch
+torchvision
+Pillow
+numpy
+fashion-clip
+typing-extensions==4.7.1
+runpod
+requests
+boto3
