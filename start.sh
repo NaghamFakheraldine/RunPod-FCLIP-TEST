@@ -6,8 +6,8 @@ export LD_PRELOAD="${TCMALLOC}"
 
 # Preload the FashionCLIP model
 echo "Preloading FashionCLIP model"
-python -c "from fashion_clip.fashion_clip import FashionCLIP; FashionCLIP('fashion-clip')"
+python3 -c "from fashion_clip.fashion_clip import FashionCLIP; FashionCLIP('fashion-clip')"
 
 # Start the Runpod worker
 echo "Starting Runpod worker"
-python fclip.py
+python3 fclip.py
