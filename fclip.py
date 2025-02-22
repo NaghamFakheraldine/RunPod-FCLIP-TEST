@@ -23,9 +23,12 @@ def load_images_from_s3(bucket_name, collection_name):
             continue
         
         for obj in page['Contents']:
+            if obj['Key'].endswith('/'):  # Skip directories
+                continue
             try:
                 response = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
                 image = Image.open(BytesIO(response['Body'].read()))
+                image.verify()  # Verify that it is an image
                 images.append(image)
                 image_keys.append(obj['Key'])
             except Exception as e:
