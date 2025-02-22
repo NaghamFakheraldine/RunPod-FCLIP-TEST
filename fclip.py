@@ -123,7 +123,7 @@ def handler(event):
         
         # Calculate similarity scores and sort
         similarity_scores = text_embedding.dot(image_embeddings.T)
-        sorted_indices = np.argsort(-similarity_scores)  # Note the negative sign for descending order
+        sorted_indices = np.argsort(similarity_scores)[::-1]
         
         # Map sorted indices to image keys
         sorted_keys = [image_keys[idx] for idx in sorted_indices]
@@ -134,11 +134,11 @@ def handler(event):
         return {
             "sorted_indices": sorted_indices.tolist(),
             "image_keys": sorted_keys,
-            "similarity_scores": similarity_scores[sorted_indices].tolist(),
-            "metrics": {
-                "total_time": time.time() - start_time,
-                "total_images": len(images)
-            }
+            # "similarity_scores": similarity_scores[sorted_indices].tolist(),
+            # "metrics": {
+            #     "total_time": time.time() - start_time,
+            #     "total_images": len(images)
+            # }
         }
         
     except Exception as e:
